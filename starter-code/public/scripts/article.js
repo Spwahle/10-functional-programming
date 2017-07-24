@@ -42,13 +42,15 @@ Article.loadAll = rows => {
   // of functions. So if we set a variable equal to the result of a .map, it will be our transformed array.
   // There is no need to push to anything.
 
-  /* OLD forEach():
-  rawData.forEach(function(ele) {
-  Article.all.push(new Article(ele));
-});
-*/
+  //  OLD forEach():
+  // rawData.forEach(function(ele) {
+  // Article.all.push(new Article(ele));
+// });
 
+  Article.all = rows.map(ele => new Article(ele))
 };
+
+
 
 Article.fetchAll = callback => {
   $.get('/articles')
@@ -61,18 +63,32 @@ Article.fetchAll = callback => {
 };
 
 // TODO: Chain together a `map` and a `reduce` call to get a rough count of all words in all articles.
-Article.numWordsAll = () => {
-  return Article.all.map().reduce()
+Article.numWordsAll = () => {return Article.all.map((article) => article.body.split(' ').length)
+    .reduce((a, b) => a + b);
 };
 
 // TODO: Chain together a `map` and a `reduce` call to produce an array of unique author names. You will
 // probably need to use the optional accumulator argument in your reduce call.
 Article.allAuthors = () => {
-  return Article.all.map().reduce();
-};
+  return Article.all
+  .map((article) => article.author.body).reduce((allNames, names) => {
+    if(!allNames.includes(names)){
+      allNames.push(names)
+    }
+    return allNames;
+  }, [])};
 
 Article.numWordsByAuthor = () => {
   return Article.allAuthors().map(author => {
+    return ({
+      authorName: name,
+      words: Article.all.filter(article => {
+        return article.author === author;
+      })
+    .map((article) => article.body.split(' ').length)
+    .reduce((a, b) => a + b)
+    }
+    )
     // TODO: Transform each author string into an object with properties for
     // the author's name, as well as the total number of words across all articles
     // written by the specified author.
@@ -101,6 +117,7 @@ Article.prototype.insertRecord = function(callback) {
   .then(console.log)
   .then(callback);
 };
+
 
 Article.prototype.deleteRecord = function(callback) {
   $.ajax({
